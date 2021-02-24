@@ -7,24 +7,105 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rio)
+library(here)
+library(janitor)
+library(cowplot)
+library(colorblindr)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Rates of incarceration per 100,000 population in state prisons, federal prisons, and local jails from 1925-2016
+#Compiled by the Prison Policy Initiative https://www.prisonpolicy.org/data/
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+incar <- import(here::here("data", "incarceration_rates_by_type.csv")) %>% 
+  characterize() %>% 
+  clean_names()
+  
+incar <- incar[-c(93:16383), ]
 
-```{r cars}
-summary(cars)
+incar %>% 
+  pivot_longer(cols = state_prisons:local_jails) %>%
+  ggplot(aes(year, value, group = name)) +
+  geom_line(aes(color = name)) +
+  scale_color_OkabeIto() +
+  labs(y = "Incarceration Rates", x = "Year", title = "Rates of Incarceration per 100,000 people", caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
+  scale_color_discrete(name = "Institution", labels = c("Federal Prisons", "Local Jails", "State Prisons")) +
+  theme_minimal()
+
 ```
 
-## Including Plots
+## How much do incarcerated people earn in each state?
+#Source: https://www.prisonpolicy.org/blog/2017/04/10/wages/
+#Wages are per hour. Some states publish wage policies differently. For states that calculate wages on daily, weekly, monthly, and annual bases, I calculated the hourly rates based on work hours per day and work days per month, according to the written policies or what was reported in the 2001 Corrections Yearbook survey. For states where I could find no information on work hours, I assumed 22 work days per month and an average workday of 6.35 hours (for regular jobs) or 6.79 hours (for industry jobs) per day. I included all non-industry jobs paid by correctional agencies as “regular prison jobs” for the table, including rare and off-site jobs that pay more. In many states, most regular prison jobs pay well below the highest rates stated here. 
+```{r}
+earnings <- import(here::here("data", "Earnings_state.xlsx")) %>% 
+  characterize() %>% 
+  clean_names()
+  
+earnings <- na_if(earnings, "n/a")
+earnings$non_industry <- as.double(earnings$non_industry)
+earnings$correctional_industry <- as.double(earnings$correctional_industry)
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+p1 <- ggplot(earnings, aes(state, non_industry)) +
+  geom_line(aes(group = state)) +
+  geom_point(aes(color = bookend), show.legend = FALSE) +
+  ylim(0,5.15) +
+  coord_flip() + 
+  labs(title = "Range of Earnings Offered to Incarcerated People in Non-industry Jobs", 
+       x = "State", 
+       y = "Wage per hour", 
+       caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
+  theme_minimal()
+
+p2 <- ggplot(earnings, aes(state, correctional_industry)) +
+  geom_line(aes(group = state)) +
+  geom_point(aes(color = bookend), show.legend = FALSE) +
+  coord_flip() + 
+  labs(title = "Range of Earnings Offered to Incarcerated People in Correctional Industry Jobs", 
+       x = "State", 
+       y = "Wage per hour", 
+       caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
+  theme_minimal()
+
+plot_grid(p1, p2)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+#note: I want to animate this to change across time (from 1978-2015)
+
+states <- import(here::here("data", "State_rates_time.xlsx")) %>% 
+  characterize() %>% 
+  clean_names()
+  
+#remotes::install_github("hrbrmstr/albersusa")
+library(albersusa)
+us <- usa_sf() %>% 
+  mutate(
+    state = factor(name))
+
+states_prison <- states %>% 
+  filter(institution == "Prison Rate")
+
+states_prison <- states_prison %>% 
+  mutate(factor(state))
+
+data_map <- left_join(us, states_prison, by = "state")
+
+ggplot(data_map) +
+  geom_sf(aes(fill = x1978)) +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(title = "Rates of Incarceration in State Prisons  in 1978", 
+       fill = "Incarceration\nper 100,000 people",
+       caption = "Data from Sawyer (2018). https://www.prisonpolicy.org/reports/women_overtime_table_1.html") +
+  theme_minimal()
+
+```
+
