@@ -20,32 +20,10 @@ library(colorblindr)
 Column {data-width=650}
 -----------------------------------------------------------------------
 
+
 ### Chart A
 
-```{r}
-incar <- import(here::here("data", "incarceration_rates_by_type.csv")) %>% 
-  characterize() %>% 
-  clean_names()
-  
-incar <- incar[-c(93:16383), ]
-
-incar %>% 
-  pivot_longer(cols = state_prisons:local_jails) %>%
-  ggplot(aes(year, value, group = name)) +
-  geom_line(aes(color = name)) +
-  scale_color_OkabeIto() +
-  labs(y = "Incarceration Rates", x = "Year", title = "Rates of Incarceration per 100,000 people", caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
-  scale_color_discrete(name = "Institution", labels = c("Federal Prisons", "Local Jails", "State Prisons")) +
-  theme_minimal()
-
-```
-
-Column {data-width=350}
------------------------------------------------------------------------
-
-### Chart B
-
-```{r}
+```{r fig.width=14, fig.height=6}
 earnings <- import(here::here("data", "Earnings_state.xlsx")) %>% 
   characterize() %>% 
   clean_names()
@@ -77,6 +55,31 @@ p2 <- ggplot(earnings, aes(state, correctional_industry)) +
   theme_minimal()
 
 plot_grid(p1, p2)
+
+
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+incar <- import(here::here("data", "incarceration_rates_by_type.csv")) %>% 
+  characterize() %>% 
+  clean_names()
+  
+incar <- incar[-c(93:16383), ]
+
+incar %>% 
+  pivot_longer(cols = state_prisons:local_jails) %>%
+  ggplot(aes(year, value, group = name)) +
+  geom_line(aes(color = name)) +
+  scale_color_OkabeIto() +
+  labs(y = "Incarceration Rates", x = "Year", title = "Rates of Incarceration per 100,000 people", caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
+  scale_color_discrete(name = "Institution", labels = c("Federal Prisons", "Local Jails", "State Prisons")) +
+  theme_minimal()
 ```
 
 ### Chart C
