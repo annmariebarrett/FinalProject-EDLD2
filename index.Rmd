@@ -88,7 +88,7 @@ incar %>%
   theme_minimal()
 
 #Strengths: Great choice with the color-blind palette. 
-#Possible improvements: This feels like a good example of where you can add the label directly onto the plot so they're next to the line graphs. This way you can remove the legend. I think the Week 6 lecture on communication has an example with code. You could probably remove the y-axis label "Year" and incorporate it into the title 
+#Possible improvements: This feels like a good example of where you can add the label directly onto the plot so they're next to the line graphs. This way you can remove the legend. I think the Week 6 lecture on communication has an example with code. You could probably remove the y-axis label "Year" and incorporate it into the title. Making this plot interactive (with plotly perhaps) might be a nice addition too, and then you can remove some of the vertical lines 
 ```
 
 ### Chart C
