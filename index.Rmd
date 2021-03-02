@@ -120,7 +120,7 @@ ggplot(data_map) +
        caption = "Data from Sawyer (2018). https://www.prisonpolicy.org/reports/women_overtime_table_1.html") +
   theme_minimal()
 #Strength: Very pretty, easy to identify regions with low and high incarceration rates! 
-#Possible recommendations: Removing the longitudinal and latitudinal lines might be nice in order to allow viewers to really highlight.
+#Possible recommendations: Removing the longitudinal and latitudinal lines might be nice in order to minimize distractions for the viewers. 
 #I can't really think of much to change. It could be interesting to see how the rate changes over time using an animated map. (I think you had mentioned wanting to do that.)
 ```
 
