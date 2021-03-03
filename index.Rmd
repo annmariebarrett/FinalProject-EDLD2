@@ -28,10 +28,10 @@ earnings <- import(here::here("data", "Earnings_state.xlsx")) %>%
   characterize() %>% 
   clean_names()
   
-earnings <- na_if(earnings, "n/a")
+earnings <- na_if(earnings, "n/a") 
 earnings$non_industry <- as.double(earnings$non_industry)
 earnings$correctional_industry <- as.double(earnings$correctional_industry)
-
+#na_if and as.double are such helpful functions! I don't think I was aware of them before, so I definitely count this as something I've learned. Using these functions is much more effective that code I would have used with the mutate and rename functions.
 
 p1 <- ggplot(earnings, aes(state, non_industry)) +
   geom_line(aes(group = state)) +
@@ -42,7 +42,10 @@ p1 <- ggplot(earnings, aes(state, non_industry)) +
        x = "State", 
        y = "Wage per hour", 
        caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
-  theme_minimal()
+  theme_minimal() +
+  scale_y_continuous(labels=scales::label_dollar())  #it might be helpful to have $ signs on the axes. It looks like this limits the range from $0 - $5 to $0 - $2, so that isn't ideal. I tried "label_dollar(1:5))" but that just provided 5 0's.
+
+
 
 p2 <- ggplot(earnings, aes(state, correctional_industry)) +
   geom_line(aes(group = state)) +
@@ -52,10 +55,13 @@ p2 <- ggplot(earnings, aes(state, correctional_industry)) +
        x = "State", 
        y = "Wage per hour", 
        caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
-  theme_minimal()
+  theme_minimal() +
+  scale_y_continuous(labels=scales::label_dollar()) 
 
 plot_grid(p1, p2)
+#Strength = It's really effective seeing the two plots next to each other to compare the range of earnings between groups of people. I'm glad you kept the scale the same for both plots. The use of the lines to connect the points is an easy way to pick up on the range. 
 
+#Possible improvements: Combining the plots such that you see the earnings for both groups on one plot. So each state would have 2 rows. I think incorporating the color green could be really nice since your outcome is money #Moolah and coordinating so that colors in the title match the colors used to indicate the group type.  That's interesting that some states did not have any data on the earnings. If you know why that is, and it seems relevant, maybe that could be added in the caption?
 
 ```
 
@@ -70,7 +76,7 @@ incar <- import(here::here("data", "incarceration_rates_by_type.csv")) %>%
   characterize() %>% 
   clean_names()
   
-incar <- incar[-c(93:16383), ]
+incar <- incar[-c(93:16383), ] #I'm curious why you picked this subset
 
 incar %>% 
   pivot_longer(cols = state_prisons:local_jails) %>%
@@ -80,6 +86,9 @@ incar %>%
   labs(y = "Incarceration Rates", x = "Year", title = "Rates of Incarceration per 100,000 people", caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
   scale_color_discrete(name = "Institution", labels = c("Federal Prisons", "Local Jails", "State Prisons")) +
   theme_minimal()
+
+#Strengths: Great choice with the color-blind palette. 
+#Possible improvements: This feels like a good example of where you can add the label directly onto the plot so they're next to the line graphs. This way you can remove the legend. I think the Week 6 lecture on communication has an example with code. You could probably remove the y-axis label "Year" and incorporate it into the title. Making this plot interactive (with plotly perhaps) might be a nice addition too, and then you can remove some of the vertical lines 
 ```
 
 ### Chart C
@@ -99,7 +108,7 @@ states_prison <- states %>%
   filter(institution == "Prison Rate")
 
 states_prison <- states_prison %>% 
-  mutate(factor(state))
+  mutate(factor(state)) #It doesn't seem to have mad a difference when it was actually time to merge the data frames, but I just want to point out that this code created a new column called "factor(state)" instead of converting the "state" variable into factors. I'm not sure if this was intentional. 
 
 data_map <- left_join(us, states_prison, by = "state")
 
@@ -110,6 +119,8 @@ ggplot(data_map) +
        fill = "Incarceration\nper 100,000 people",
        caption = "Data from Sawyer (2018). https://www.prisonpolicy.org/reports/women_overtime_table_1.html") +
   theme_minimal()
-
+#Strength: Very pretty, easy to identify regions with low and high incarceration rates! 
+#Possible recommendations: Removing the longitudinal and latitudinal lines might be nice in order to minimize distractions for the viewers. 
+#I can't really think of much to change. It could be interesting to see how the rate changes over time using an animated map. (I think you had mentioned wanting to do that.)
 ```
 
