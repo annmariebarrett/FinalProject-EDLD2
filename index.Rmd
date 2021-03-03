@@ -14,6 +14,8 @@ library(here)
 library(janitor)
 library(cowplot)
 library(colorblindr)
+#remotes::install_github("hrbrmstr/albersusa")
+library(albersusa)
 ```
 
 
@@ -26,43 +28,65 @@ Column {data-width=650}
 ```{r fig.width=14, fig.height=6}
 earnings <- import(here::here("data", "Earnings_state.xlsx")) %>% 
   characterize() %>% 
-  clean_names()
-  
-earnings <- na_if(earnings, "n/a") 
-earnings$non_industry <- as.double(earnings$non_industry)
-earnings$correctional_industry <- as.double(earnings$correctional_industry)
+  clean_names() %>% 
+  na_if('n/a') %>% 
+  mutate(non_industry = as.double(non_industry), 
+         correctional_industry = as.double(correctional_industry))
+
+## I put these in the mutate call to do it in one call -- Chris
+
 #na_if and as.double are such helpful functions! I don't think I was aware of them before, so I definitely count this as something I've learned. Using these functions is much more effective that code I would have used with the mutate and rename functions.
 
-p1 <- ggplot(earnings, aes(state, non_industry)) +
+p1 <- ggplot(earnings, 
+             aes(y = state, 
+                 x = non_industry)) +
   geom_line(aes(group = state)) +
-  geom_point(aes(color = bookend), show.legend = FALSE) +
-  ylim(0,5.15) +
-  coord_flip() + 
+  geom_point(aes(color = bookend), 
+             show.legend = FALSE) +
+  xlim(0,5.15) +
   labs(title = "Range of Earnings Offered to Incarcerated People in Non-industry Jobs", 
        x = "State", 
        y = "Wage per hour", 
-       caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
+       #caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/"
+       ) + 
   theme_minimal() +
-  scale_y_continuous(labels=scales::label_dollar())  #it might be helpful to have $ signs on the axes. It looks like this limits the range from $0 - $5 to $0 - $2, so that isn't ideal. I tried "label_dollar(1:5))" but that just provided 5 0's.
+  scale_x_continuous(labels=scales::label_dollar())  
+
+#it might be helpful to have $ signs on the axes. It looks like this limits the range from $0 - $5 to $0 - $2, so that isn't ideal. I tried "label_dollar(1:5))" but that just provided 5 0's.
+
+  ## Ann-Marie, IDK if you fixed it already or it was something on the 
+  ## other reviewer's end, but the dollar signs were there when I ran code, 
+  ## just FYI -- Chris
 
 
-
-p2 <- ggplot(earnings, aes(state, correctional_industry)) +
+p2 <- ggplot(earnings, 
+             aes(y = state, 
+                 x = correctional_industry)) +
   geom_line(aes(group = state)) +
-  geom_point(aes(color = bookend), show.legend = FALSE) +
-  coord_flip() + 
+  geom_point(aes(color = bookend), 
+             show.legend = FALSE) +
   labs(title = "Range of Earnings Offered to Incarcerated People in Correctional Industry Jobs", 
-       x = "State", 
-       y = "Wage per hour", 
+       y = "State", 
+       x = "Wage per hour", 
        caption = "Data from Sawyer (2017). https://www.prisonpolicy.org/blog/2017/04/10/wages/") + 
   theme_minimal() +
-  scale_y_continuous(labels=scales::label_dollar()) 
+  scale_x_continuous(labels=scales::label_dollar()) 
 
 plot_grid(p1, p2)
 #Strength = It's really effective seeing the two plots next to each other to compare the range of earnings between groups of people. I'm glad you kept the scale the same for both plots. The use of the lines to connect the points is an easy way to pick up on the range. 
 
 #Possible improvements: Combining the plots such that you see the earnings for both groups on one plot. So each state would have 2 rows. I think incorporating the color green could be really nice since your outcome is money #Moolah and coordinating so that colors in the title match the colors used to indicate the group type.  That's interesting that some states did not have any data on the earnings. If you know why that is, and it seems relevant, maybe that could be added in the caption?
 
+  ## CHRIS' COMMENTS:
+  ## This plot is great at visualizing differences across states, I love
+  ## the two color highs and lows.
+  
+  ## Suggestions: 
+  ## (1) drop the caption on the left plot so there aren't two
+  ## (2) If you manually specify `y = ` & `x = `, you can omit the coord_flip(). 
+  ## (3) consider making red the "low" color (all preference)
+  
+ 
 ```
 
 
@@ -80,15 +104,29 @@ incar <- incar[-c(93:16383), ] #I'm curious why you picked this subset
 
 incar %>% 
   pivot_longer(cols = state_prisons:local_jails) %>%
-  ggplot(aes(year, value, group = name)) +
-  geom_line(aes(color = name)) +
-  scale_color_OkabeIto() +
-  labs(y = "Incarceration Rates", x = "Year", title = "Rates of Incarceration per 100,000 people", caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
-  scale_color_discrete(name = "Institution", labels = c("Federal Prisons", "Local Jails", "State Prisons")) +
-  theme_minimal()
+  ggplot(aes(year, value, color = name)) +
+  geom_line() +
+  labs(y = "Incarceration Rates", 
+       x = "Year", 
+       title = "Rates of Incarceration per 100,000 people", 
+       caption = "Data compiled by the Prison Policy Initiative. https://www.prisonpolicy.org/data/") + 
+  scale_color_OkabeIto(name = "Institution", 
+                       labels = c("Federal Prisons", 
+                                  "Local Jails", 
+                                  "State Prisons")) + 
+  theme_minimal(base_size = 18)
 
 #Strengths: Great choice with the color-blind palette. 
 #Possible improvements: This feels like a good example of where you can add the label directly onto the plot so they're next to the line graphs. This way you can remove the legend. I think the Week 6 lecture on communication has an example with code. You could probably remove the y-axis label "Year" and incorporate it into the title. Making this plot interactive (with plotly perhaps) might be a nice addition too, and then you can remove some of the vertical lines 
+
+  ## CHRIS' COMMENTS:
+  ## I really like how dramatically you're showing an increase here.
+  
+  ## Suggestions: 
+  ## (1) you can skip the "group = name" if you have "color = name".
+  ## scale_color_OkabeIto() takes the place of scale_color_discrete() 
+  ## so I moved your `name =` & `labels =` code 
+  ## (2) Also, I just increased the base font size for readability.
 ```
 
 ### Chart C
@@ -98,8 +136,8 @@ states <- import(here::here("data", "State_rates_time.xlsx")) %>%
   characterize() %>% 
   clean_names()
   
-#remotes::install_github("hrbrmstr/albersusa")
-library(albersusa)
+## I try and load all packages at the start to keep them together
+
 us <- usa_sf() %>% 
   mutate(
     state = factor(name))
@@ -112,15 +150,40 @@ states_prison <- states_prison %>%
 
 data_map <- left_join(us, states_prison, by = "state")
 
-ggplot(data_map) +
-  geom_sf(aes(fill = x1978)) +
+
+plot_3 <- 
+  ggplot(data_map) +
+  geom_sf(aes(geometry = geometry, fill = x1978)) +
   scale_fill_viridis_c(option = "plasma") +
   labs(title = "Rates of Incarceration in State Prisons  in 1978", 
-       fill = "Incarceration\nper 100,000 people",
+       fill = "Incarceration per 100,000 people",
        caption = "Data from Sawyer (2018). https://www.prisonpolicy.org/reports/women_overtime_table_1.html") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = 'top')
+
+plot_3
+
+
+
+
+
 #Strength: Very pretty, easy to identify regions with low and high incarceration rates! 
 #Possible recommendations: Removing the longitudinal and latitudinal lines might be nice in order to minimize distractions for the viewers. 
 #I can't really think of much to change. It could be interesting to see how the rate changes over time using an animated map. (I think you had mentioned wanting to do that.)
+
+  ## CHRIS' COMMENT:
+  ## Great plot here, I really like seeing things graphically, and I think 
+  ## your use of color palette is nice. Good use of caption in plot. 
+
+  ## Suggestions: 
+  ## 1) try the legend at the top (or bottom), it gives the map more space
+  ## 2) To echo above: I think an animation would improve this a bit. 
+  ## If you pivot into long format, make a column called 'year', and 
+  ## change the name of the `fill =` column to reference all years, 
+  ## you could animate this with just adding the code below:
+
+  ## plot_3 + 
+  ##   transition_states(year) +  
+  ##   labs(title = 'Rates of Incarceration in State Prisons  in 1978 {next_state}')
 ```
 
