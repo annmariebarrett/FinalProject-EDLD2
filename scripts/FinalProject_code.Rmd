@@ -14,6 +14,9 @@ library(here)
 library(janitor)
 library(cowplot)
 library(colorblindr)
+
+#install.packages("colorblindr")
+#my version of R was not able to download the colorblindr package. I was still able to view the graph, just not in the color palette you intended. 
 ```
 
 
@@ -86,10 +89,12 @@ states <- import(here::here("data", "State_rates_time.xlsx")) %>%
   clean_names()
   
 #remotes::install_github("hrbrmstr/albersusa")
-library(albersusa)
+library(albersusa) #struggled to download this package and then load it on my machine
 us <- usa_sf() %>% 
   mutate(
     state = factor(name))
+
+
 
 states_prison <- states %>% 
   filter(institution == "Prison Rate")
