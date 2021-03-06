@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 # PNG files produced by animation
 *.png
+
+# Output gifs
+*.gif
