@@ -39,4 +39,4 @@ vignettes/*.pdf
 .Renviron
 
 # PNG files produced by animation
-.png
+*.png
